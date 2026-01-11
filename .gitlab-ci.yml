@@ -1,0 +1,46 @@
+stages:
+  - build
+  - deploy
+
+# 构建阶段
+build:
+  stage: build
+  image: node:20
+  tags:
+    - amd64-docker
+  cache:
+    key: yarn-cache
+    paths:
+      - .yarn/cache
+  script:
+    - corepack enable
+    - export YARN_NPM_REGISTRY_SERVER=https://registry.npmmirror.com
+    - export YARN_ENABLE_IMMUTABLE_INSTALLS=false
+    - yarn install
+    - yarn build:prod
+  after_script:
+    - rm -rf node_modules
+  artifacts:
+    paths:
+      - mgkw
+    expire_in: 1 hour
+  only:
+    - master
+
+# 部署阶段
+deploy:
+  stage: deploy
+  tags:
+    - shell
+  dependencies:
+    - build
+  variables:
+    SERVER: "www.zhuxuanwo.com"
+    DEPLOY_PATH: "/opt/docker/nginx/html"
+  script:
+    - ssh root@$SERVER "rm -rf $DEPLOY_PATH/mgkw/*"
+    - scp -r mgkw/* root@$SERVER:$DEPLOY_PATH/mgkw/
+    - ssh root@$SERVER "docker restart nginx"
+  only:
+    - master
+

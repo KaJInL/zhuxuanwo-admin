@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["vite/client"],    // 这里引入 vite/client 及自定义类型
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true              // 不生成声明文件，避免 TS6305 报错
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "types/**/*.d.ts"           // 确保类型声明文件被包含
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

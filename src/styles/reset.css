@@ -1,0 +1,85 @@
+/* reset.css */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+    font-size: inherit;
+    margin: 0;
+    padding: 0;
+}
+
+ul, ol {
+    list-style: none;
+}
+a {
+    text-decoration: none;
+}
+
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    background: none;
+    color: inherit;
+}
+
+nav ul li {
+    margin: 0;
+    padding: 0;
+}
+li {
+    list-style: none;
+}
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    font-weight: normal;
+}
+
+button {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+/* 全局隐藏滚动条但保持滚动功能 */
+html, body, * {
+    /* Firefox */
+    scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    /* Chrome, Safari, Edge */
+    display: none;
+}
+
+/* 确保全局滚动条都被隐藏 */
+::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    display: none;
+}
+
+::-webkit-scrollbar-track {
+    display: none;
+}
+
+::-webkit-scrollbar-thumb {
+    display: none;
+}
