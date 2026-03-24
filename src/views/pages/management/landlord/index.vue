@@ -7,7 +7,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   EyeOutlined,
-  UserAddOutlined,
 } from '@ant-design/icons-vue'
 import landlordApplicationApi, {
   type LandlordApplicationItem,
@@ -134,30 +133,6 @@ const showImagePreview = (images: string[], index = 0) => {
   previewVisible.value = true
 }
 
-// ==================== 直接设置房东 ====================
-const setLandlordModalVisible = ref(false)
-const setLandlordUserId = ref('')
-const setLandlordLoading = ref(false)
-
-const handleSetLandlord = async () => {
-  if (!setLandlordUserId.value.trim()) {
-    message.warning('请输入用户ID')
-    return
-  }
-  setLandlordLoading.value = true
-  try {
-    const res = await landlordApplicationApi.setLandlord({userId: setLandlordUserId.value})
-    if (res.succeed) {
-      message.success('已成功设置该用户为房东')
-      setLandlordModalVisible.value = false
-      setLandlordUserId.value = ''
-      fetchData()
-    }
-  } finally {
-    setLandlordLoading.value = false
-  }
-}
-
 // ==================== 快速审核 ====================
 const quickApprove = (record: LandlordApplicationItem) => {
   Modal.confirm({
@@ -188,13 +163,9 @@ onMounted(() => {
     <!-- 头部 -->
     <div class="page-header">
       <div>
-        <h2 class="page-title">房东管理</h2>
-        <p class="page-description">审核房东申请，管理房东角色</p>
+        <h2 class="page-title">房东申请审核</h2>
+        <p class="page-description">审核用户提交的房东权限申请</p>
       </div>
-      <a-button type="primary" @click="setLandlordModalVisible = true">
-        <UserAddOutlined/>
-        直接设置房东
-      </a-button>
     </div>
 
     <!-- 状态筛选 -->
@@ -366,21 +337,6 @@ onMounted(() => {
       </div>
     </a-modal>
 
-    <!-- 直接设置房东弹窗 -->
-    <a-modal
-        v-model:open="setLandlordModalVisible"
-        title="添加房东"
-        @ok="handleSetLandlord"
-        :confirm-loading="setLandlordLoading"
-        ok-text="确认设置"
-    >
-      <p class="mb-4 text-gray-500">直接将指定用户设置为房东角色，无需审核证明资料。</p>
-      <a-input
-          v-model:value="setLandlordUserId"
-          placeholder="请输入用户ID"
-          allow-clear
-      />
-    </a-modal>
   </div>
 </template>
 

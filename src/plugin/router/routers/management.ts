@@ -17,11 +17,11 @@ const managementRoutes: RouteRecordRaw[] = [
         }
     },
     {
-        path: 'settings',
-        name: 'Settings',
-        component: () => import('@/views/pages/management/settings/index.vue'),
+        path: 'user',
+        name: 'UserManagement',
+        component: () => import('@/views/pages/management/user/index.vue'),
         meta: {
-            title: '设置'
+            title: '用户管理'
         }
     },
     {
@@ -29,10 +29,17 @@ const managementRoutes: RouteRecordRaw[] = [
         name: 'LandlordManagement',
         component: () => import('@/views/pages/management/landlord/index.vue'),
         meta: {
-            title: '房东管理'
+            title: '房东申请审核'
         }
-    }
+    },
+    {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('@/views/pages/management/settings/index.vue'),
+        meta: {
+            title: '设置'
+        }
+    },
 ];
 
 export default managementRoutes;
-

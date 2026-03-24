@@ -4,12 +4,9 @@ import {useRouter, useRoute} from "vue-router";
 import {
     HomeOutlined,
     UserOutlined,
-    AppstoreOutlined,
-    FolderOutlined,
-    BookOutlined,
-    ExperimentOutlined,
-    GiftOutlined,
-    ShoppingOutlined, SettingFilled, AntDesignOutlined
+    SettingFilled,
+    TeamOutlined,
+    AuditOutlined,
 } from "@ant-design/icons-vue";
 
 export const useManagementMenuStore = defineStore("managementMenu", () => {
@@ -24,13 +21,15 @@ export const useManagementMenuStore = defineStore("managementMenu", () => {
                 key: "1", icon: () => h(HomeOutlined), label: "首页", routeName: "Home"
             },
             {
-                key: "3", icon: () => h(UserOutlined), label: '房东管理', routeName: "LandlordManagement"
+                key: "2", icon: () => h(UserOutlined), label: '用户管理',
+                children: [
+                    {key: "2-1", icon: () => h(TeamOutlined), label: "用户列表", routeName: "UserManagement"},
+                    {key: "2-2", icon: () => h(AuditOutlined), label: "房东申请审核", routeName: "LandlordManagement"},
+                ]
             },
             {
-                key: "2", icon: () => h(SettingFilled), label: '设置', routeName: "Settings"
+                key: "3", icon: () => h(SettingFilled), label: '设置', routeName: "Settings"
             },
-
-
         ]
     );
 

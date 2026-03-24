@@ -5,7 +5,6 @@ import {LandlordApplicationStatusEnum} from "@/common/enums/landlordApplicationE
 enum LandlordApplicationApiEnum {
     PAGE = '/uc/landlord-application/admin/page',
     REVIEW = '/uc/landlord-application/admin/review',
-    SET_LANDLORD = '/uc/landlord-application/admin/set-landlord',
 }
 
 export interface LandlordApplicationItem {
@@ -34,10 +33,6 @@ export interface ReviewApplicationReq {
     rejectReason?: string
 }
 
-export interface AdminSetLandlordReq {
-    userId: string
-}
-
 const getApplicationPage = async (params: ApplicationPageReq): Promise<IBaseResponse<IPageRes<LandlordApplicationItem>>> => {
     return http.get<IPageRes<LandlordApplicationItem>>(LandlordApplicationApiEnum.PAGE, {params})
 }
@@ -46,12 +41,7 @@ const reviewApplication = async (req: ReviewApplicationReq): Promise<IBaseRespon
     return http.post<LandlordApplicationItem>(LandlordApplicationApiEnum.REVIEW, req)
 }
 
-const setLandlord = async (req: AdminSetLandlordReq): Promise<IBaseResponse<boolean>> => {
-    return http.post<boolean>(LandlordApplicationApiEnum.SET_LANDLORD, req)
-}
-
 export default {
     getApplicationPage,
     reviewApplication,
-    setLandlord,
 }
