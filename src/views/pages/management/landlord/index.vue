@@ -7,6 +7,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   EyeOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue'
 import landlordApplicationApi, {
   type LandlordApplicationItem,
@@ -18,26 +19,11 @@ import {
   LandlordApplicationStatusColorMap,
 } from '@/common/enums/landlordApplicationEnum'
 
-// ==================== 列表相关 ====================
+// ==================== 列表 ====================
 const loading = ref(false)
 const dataSource = ref<LandlordApplicationItem[]>([])
-const pagination = reactive({
-  current: 1,
-  pageSize: 10,
-  total: 0,
-})
+const pagination = reactive({current: 1, pageSize: 12, total: 0})
 const activeTab = ref<string>('ALL')
-
-const columns = [
-  {title: '用户名', dataIndex: 'username', width: 120},
-  {title: '昵称', dataIndex: 'nickname', width: 120},
-  {title: '手机号', dataIndex: 'phone', width: 140},
-  {title: '证明资料', key: 'proofImages', width: 120},
-  {title: '备注', dataIndex: 'remark', width: 160, ellipsis: true},
-  {title: '状态', key: 'status', width: 100},
-  {title: '申请时间', dataIndex: 'createdAt', width: 180},
-  {title: '操作', key: 'action', width: 180, fixed: 'right' as const},
-]
 
 const fetchData = async () => {
   loading.value = true
@@ -57,9 +43,9 @@ const fetchData = async () => {
   }
 }
 
-const handleTableChange = (pag: any) => {
-  pagination.current = pag.current
-  pagination.pageSize = pag.pageSize
+const handlePageChange = (page: number, pageSize: number) => {
+  pagination.current = page
+  pagination.pageSize = pageSize
   fetchData()
 }
 
@@ -153,19 +139,15 @@ const quickApprove = (record: LandlordApplicationItem) => {
   })
 }
 
-onMounted(() => {
-  fetchData()
-})
+onMounted(() => fetchData())
 </script>
 
 <template>
   <div class="landlord-page">
     <!-- 头部 -->
     <div class="page-header">
-      <div>
-        <h2 class="page-title">房东申请审核</h2>
-        <p class="page-description">审核用户提交的房东权限申请</p>
-      </div>
+      <h2 class="page-title">房东申请审核</h2>
+      <p class="page-description">审核用户提交的房东权限申请</p>
     </div>
 
     <!-- 状态筛选 -->
@@ -176,80 +158,77 @@ onMounted(() => {
       <a-tab-pane key="REJECTED" tab="已拒绝"/>
     </a-tabs>
 
-    <!-- 数据表格 -->
-    <a-table
-        :columns="columns"
-        :data-source="dataSource"
-        :loading="loading"
-        :pagination="{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          showSizeChanger: true,
-          showTotal: (total: number) => `共 ${total} 条`,
-        }"
-        :scroll="{ x: 1100 }"
-        row-key="id"
-        @change="handleTableChange"
-    >
-      <!-- 证明资料列 -->
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'proofImages'">
-          <div class="proof-images" v-if="record.proofImages?.length">
-            <a-image-preview-group>
-              <div class="image-thumbs">
-                <img
-                    v-for="(img, idx) in record.proofImages.slice(0, 3)"
-                    :key="idx"
-                    :src="img"
-                    class="thumb-img"
-                    @click="showImagePreview(record.proofImages, idx)"
-                />
-                <span v-if="record.proofImages.length > 3" class="more-count">
-                  +{{ record.proofImages.length - 3 }}
-                </span>
+    <!-- 网格布局 -->
+    <a-spin :spinning="loading">
+      <div class="app-grid">
+        <div v-for="item in dataSource" :key="item.id" class="app-card">
+          <!-- 顶部: 用户信息 + 状态 -->
+          <div class="card-top">
+            <div class="card-user">
+              <a-avatar :size="40"><template #icon><UserOutlined/></template></a-avatar>
+              <div class="card-info">
+                <div class="card-name">{{ item.nickname || item.username }}</div>
+                <div class="card-sub">{{ item.phone }}</div>
               </div>
-            </a-image-preview-group>
+            </div>
+            <a-tag :color="LandlordApplicationStatusColorMap[item.status as LandlordApplicationStatusEnum]" size="small">
+              {{ LandlordApplicationStatusNameMap[item.status as LandlordApplicationStatusEnum] }}
+            </a-tag>
           </div>
-          <span v-else class="text-gray-400">无</span>
-        </template>
 
-        <!-- 状态列 -->
-        <template v-if="column.key === 'status'">
-          <a-tag :color="LandlordApplicationStatusColorMap[record.status as LandlordApplicationStatusEnum]">
-            {{ LandlordApplicationStatusNameMap[record.status as LandlordApplicationStatusEnum] }}
-          </a-tag>
-        </template>
+          <!-- 证明资料缩略图 -->
+          <div class="card-images" v-if="item.proofImages?.length">
+            <img
+                v-for="(img, idx) in item.proofImages.slice(0, 4)"
+                :key="idx"
+                :src="img"
+                class="thumb"
+                @click="showImagePreview(item.proofImages, idx)"
+            />
+            <span v-if="item.proofImages.length > 4" class="more">+{{ item.proofImages.length - 4 }}</span>
+          </div>
+          <div v-else class="card-images-empty">无证明资料</div>
 
-        <!-- 操作列 -->
-        <template v-if="column.key === 'action'">
-          <a-space>
-            <a-button size="small" @click="showReviewModal(record)">
-              <EyeOutlined/>
-              详情
-            </a-button>
-            <template v-if="record.status === LandlordApplicationStatusEnum.PENDING">
-              <a-button size="small" type="primary" @click="quickApprove(record)">
-                <CheckCircleOutlined/>
-                通过
+          <!-- 备注 -->
+          <div class="card-remark" v-if="item.remark">{{ item.remark }}</div>
+
+          <!-- 底部: 时间 + 操作 -->
+          <div class="card-footer">
+            <span class="card-time">{{ item.createdAt?.slice(0, 10) }}</span>
+            <div class="card-actions">
+              <a-button size="small" type="text" @click="showReviewModal(item)">
+                <EyeOutlined/> 详情
               </a-button>
-              <a-button size="small" danger @click="showReviewModal(record)">
-                <CloseCircleOutlined/>
-                拒绝
-              </a-button>
-            </template>
-          </a-space>
-        </template>
-      </template>
-    </a-table>
+              <template v-if="item.status === LandlordApplicationStatusEnum.PENDING">
+                <a-button size="small" type="link" @click="quickApprove(item)">
+                  <CheckCircleOutlined/> 通过
+                </a-button>
+                <a-button size="small" type="link" danger @click="showReviewModal(item)">
+                  <CloseCircleOutlined/> 拒绝
+                </a-button>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <a-empty v-if="!loading && dataSource.length === 0" class="mt-10"/>
+    </a-spin>
+
+    <!-- 分页 -->
+    <div class="pagination-wrap" v-if="pagination.total > 0">
+      <a-pagination
+          :current="pagination.current"
+          :page-size="pagination.pageSize"
+          :total="pagination.total"
+          show-size-changer
+          :show-total="(total: number) => `共 ${total} 条`"
+          @change="handlePageChange"
+      />
+    </div>
 
     <!-- 审核详情弹窗 -->
-    <a-modal
-        v-model:open="reviewModalVisible"
-        title="申请详情"
-        :footer="null"
-        width="680px"
-    >
+    <a-modal v-model:open="reviewModalVisible" title="申请详情" :footer="null" width="680px">
       <template v-if="currentApplication">
         <a-descriptions :column="2" bordered size="small" class="mb-4">
           <a-descriptions-item label="用户名">{{ currentApplication.username }}</a-descriptions-item>
@@ -267,76 +246,39 @@ onMounted(() => {
           </a-descriptions-item>
         </a-descriptions>
 
-        <!-- 证明资料图片 -->
         <div class="proof-section">
           <h4 class="section-title">证明资料（{{ currentApplication.proofImages?.length || 0 }}张）</h4>
           <div class="proof-grid" v-if="currentApplication.proofImages?.length">
-            <div
-                v-for="(img, idx) in currentApplication.proofImages"
-                :key="idx"
-                class="proof-item"
-                @click="showImagePreview(currentApplication!.proofImages, idx)"
-            >
+            <div v-for="(img, idx) in currentApplication.proofImages" :key="idx" class="proof-item"
+                 @click="showImagePreview(currentApplication!.proofImages, idx)">
               <img :src="img" :alt="`证明资料${idx + 1}`"/>
             </div>
           </div>
           <a-empty v-else description="无证明资料"/>
         </div>
 
-        <!-- 审核操作（仅待审核状态） -->
         <div v-if="currentApplication.status === LandlordApplicationStatusEnum.PENDING" class="review-actions">
           <a-divider/>
-          <div class="reject-input">
-            <a-textarea
-                v-model:value="rejectReason"
-                placeholder="如需拒绝，请输入拒绝原因"
-                :rows="2"
-                :maxlength="500"
-                show-count
-            />
-          </div>
+          <a-textarea v-model:value="rejectReason" placeholder="如需拒绝，请输入拒绝原因" :rows="2" :maxlength="500"
+                      show-count class="mb-4"/>
           <div class="action-buttons">
-            <a-button danger :loading="reviewLoading" @click="handleReject">
-              <CloseCircleOutlined/>
-              拒绝
-            </a-button>
-            <a-button type="primary" :loading="reviewLoading" @click="handleApprove">
-              <CheckCircleOutlined/>
-              通过
-            </a-button>
+            <a-button danger :loading="reviewLoading" @click="handleReject"><CloseCircleOutlined/> 拒绝</a-button>
+            <a-button type="primary" :loading="reviewLoading" @click="handleApprove"><CheckCircleOutlined/> 通过</a-button>
           </div>
         </div>
       </template>
     </a-modal>
 
     <!-- 图片预览弹窗 -->
-    <a-modal
-        v-model:open="previewVisible"
-        :footer="null"
-        width="80%"
-        :bodyStyle="{ padding: '12px', textAlign: 'center' }"
-    >
-      <img
-          v-if="previewImages.length > 0"
-          :src="previewImages[previewIndex]"
-          alt="预览"
-          class="preview-image"
-      />
+    <a-modal v-model:open="previewVisible" :footer="null" width="80%"
+             :bodyStyle="{padding: '12px', textAlign: 'center'}">
+      <img v-if="previewImages.length > 0" :src="previewImages[previewIndex]" alt="预览" class="preview-image"/>
       <div v-if="previewImages.length > 1" class="preview-nav">
-        <a-button
-            :disabled="previewIndex === 0"
-            @click="previewIndex--"
-        >上一张
-        </a-button>
+        <a-button :disabled="previewIndex === 0" @click="previewIndex--">上一张</a-button>
         <span class="preview-counter">{{ previewIndex + 1 }} / {{ previewImages.length }}</span>
-        <a-button
-            :disabled="previewIndex === previewImages.length - 1"
-            @click="previewIndex++"
-        >下一张
-        </a-button>
+        <a-button :disabled="previewIndex === previewImages.length - 1" @click="previewIndex++">下一张</a-button>
       </div>
     </a-modal>
-
   </div>
 </template>
 
@@ -345,79 +287,84 @@ onMounted(() => {
   @apply p-6 min-h-screen bg-gray-50;
 
   .page-header {
-    @apply flex justify-between items-start mb-4;
+    @apply mb-4;
+    .page-title { @apply text-2xl font-bold text-gray-800 mb-1; }
+    .page-description { @apply text-sm text-gray-500; }
+  }
+}
 
-    .page-title {
-      @apply text-2xl font-bold text-gray-800 mb-1;
-    }
+.app-grid {
+  @apply grid gap-4;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
 
-    .page-description {
-      @apply text-sm text-gray-500;
+.app-card {
+  @apply bg-white rounded-xl p-4 border border-gray-100 shadow-sm;
+  transition: box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    @apply shadow-md;
+    transform: translateY(-2px);
+  }
+
+  .card-top {
+    @apply flex items-center justify-between mb-3;
+
+    .card-user {
+      @apply flex items-center gap-3;
+      .card-info {
+        .card-name { @apply text-sm font-semibold text-gray-800; }
+        .card-sub { @apply text-xs text-gray-400; }
+      }
     }
   }
 
-  .proof-images {
-    .image-thumbs {
-      @apply flex items-center gap-1;
+  .card-images {
+    @apply flex items-center gap-1 mb-3;
 
-      .thumb-img {
-        @apply w-8 h-8 rounded object-cover cursor-pointer border border-gray-200;
-        transition: transform 0.2s;
-
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-
-      .more-count {
-        @apply text-xs text-gray-400 ml-1;
-      }
+    .thumb {
+      @apply w-12 h-12 rounded object-cover cursor-pointer border border-gray-200;
+      transition: transform 0.2s;
+      &:hover { transform: scale(1.1); }
     }
+    .more { @apply text-xs text-gray-400 ml-1; }
+  }
+
+  .card-images-empty { @apply text-xs text-gray-400 mb-3; }
+
+  .card-remark {
+    @apply text-xs text-gray-500 mb-3 line-clamp-2;
+  }
+
+  .card-footer {
+    @apply flex items-center justify-between border-t border-gray-50 pt-3;
+    .card-time { @apply text-xs text-gray-400; }
+    .card-actions { @apply flex items-center gap-1; }
   }
 }
 
 .proof-section {
-  .section-title {
-    @apply text-sm font-medium text-gray-700 mb-3;
-  }
-
+  .section-title { @apply text-sm font-medium text-gray-700 mb-3; }
   .proof-grid {
     @apply grid grid-cols-5 gap-2;
-
     .proof-item {
       @apply aspect-square rounded-lg overflow-hidden cursor-pointer border border-gray-200;
       transition: all 0.2s;
-
-      &:hover {
-        @apply border-blue-400 shadow-md;
-      }
-
-      img {
-        @apply w-full h-full object-cover;
-      }
+      &:hover { @apply border-blue-400 shadow-md; }
+      img { @apply w-full h-full object-cover; }
     }
   }
 }
 
 .review-actions {
-  .reject-input {
-    @apply mb-4;
-  }
-
-  .action-buttons {
-    @apply flex justify-end gap-3;
-  }
+  .action-buttons { @apply flex justify-end gap-3; }
 }
 
-.preview-image {
-  @apply max-w-full max-h-[70vh] object-contain rounded;
-}
-
+.preview-image { @apply max-w-full max-h-[70vh] object-contain rounded; }
 .preview-nav {
   @apply flex items-center justify-center gap-4 mt-4;
-
-  .preview-counter {
-    @apply text-gray-500 text-sm;
-  }
+  .preview-counter { @apply text-gray-500 text-sm; }
 }
+
+.pagination-wrap { @apply flex justify-end mt-6; }
 </style>
