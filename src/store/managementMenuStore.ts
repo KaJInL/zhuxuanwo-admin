@@ -24,8 +24,12 @@ export const useManagementMenuStore = defineStore("managementMenu", () => {
                 key: "1", icon: () => h(HomeOutlined), label: "首页", routeName: "Home"
             },
             {
+                key: "3", icon: () => h(UserOutlined), label: '房东管理', routeName: "LandlordManagement"
+            },
+            {
                 key: "2", icon: () => h(SettingFilled), label: '设置', routeName: "Settings"
-            }
+            },
+
 
         ]
     );

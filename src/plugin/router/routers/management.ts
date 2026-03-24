@@ -23,6 +23,14 @@ const managementRoutes: RouteRecordRaw[] = [
         meta: {
             title: '设置'
         }
+    },
+    {
+        path: 'landlord',
+        name: 'LandlordManagement',
+        component: () => import('@/views/pages/management/landlord/index.vue'),
+        meta: {
+            title: '房东管理'
+        }
     }
 ];
 
